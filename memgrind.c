@@ -29,7 +29,7 @@ void workload2(){
         ptrs[i] = malloc(1);
     }
     for (int i = 0; i < 120; i++){
-        ptrs[i] = free(1);
+        free(ptrs[i]);
     }
 }
 
@@ -48,8 +48,8 @@ void workload3(){
         if (choice == 0 || count == 0){
             //allocate
             ptrs[count] = malloc(1);
-            count++
-            allocated++
+            count++;
+            allocated++;
         } else{
             //free
             int randExists = rand() % count;
@@ -60,16 +60,39 @@ void workload3(){
         }
     }
     //deallocate all remaining objects
-    (for int i = 0; i < 120; i++){
+    for (int i = 0; i < count; i++){
         free(ptrs[i]);
     }
 }
 
 void workload4(){
     // U DESIGN THIS
+    //simulate a linked list
+    char *ptrs[120];
+    for (int i = 0; i < 120; i++){
+        ptrs[i] = malloc((i%10)+1); //sizes 1-10 
+    }
+    for (int i = 0; i < 120; i+=2){ //i will be 0, 2, 4, etc
+        free(ptrs[i]);
+    }
+    for (int i = 1; i < 120; i+=2){ //odd number index 1, 3, 5, etc
+        free(ptrs[i]);
+    }
 }
 void workload5(){
     //U DESIGN THIS
+    char *root = malloc(8);
+    char *left[60];
+    char *right[60];
+    for (int i = 0; i < 60; i++){
+        left[i] = malloc(4);
+        right[i] = malloc(4);
+    }
+    for (int i = 0; i < 60; i++){
+        free(left[i]);
+        free(right[i]);
+    }
+    free(root);
 }
 
 int main(){
