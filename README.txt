@@ -103,7 +103,6 @@ Our testing is divided into three categories:
   3. Stress tests - Verify performance under load
 
 --CORRECTNESS TESTS--
-
 memtest (provided by instructor):
   Purpose: Verify allocations don't overlap
   Method: Allocates 64 objects filling entire heap, writes unique byte pattern
@@ -149,7 +148,6 @@ test6 -
   Expected:
 
 --STRESS TESTS--
-
 memgrind:
   Purpose: Tests performance and stress testing using realistic workloads
   Method: Runs each workload 50 times and reports average execution time
@@ -231,5 +229,3 @@ Both partners:
   - Joint debugging sessions
   - README documentation
   - Testing and validation
-
-================================================================================
