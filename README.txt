@@ -2,7 +2,7 @@ CS 214 Spring - Project 1: My Little Malloc
 
 AUTHORS:
 Janine Al-Zahiri - joa43
-[your name] - [your netID]
+Antonio Pichardo - ap2694
 
 
 **DESIGN OVERVIEW:**
@@ -88,11 +88,16 @@ All errors print to stderr with format:
 Then call exit(2) to terminate the program.
 
 in malloc:
-1.[description of errors]
+1. We catch three main mistakes in free: 
+  - pointers not from our heap, pointers that don’t point to the start of a block, and double frees. 
+    - On each free, we scan the heap’s chunk headers to find a matching allocated block; if it’s missing, already free, 
+      or the pointer lands in the middle of a chunk,  we print an error (with __FILE__/__LINE__) and exit with status 2.
 
 
 --LEAK DETECTION--
-[description for leak detection]
+we register a leak checker with atexit so it runs automatically when the program ends. 
+It walks the heap, totals up any chunks still marked allocated, and prints how many objects and bytes were leaked (or that there were no leaks), 
+without the user having to call anything special.
 
 **TEST PLAN**
 
@@ -110,42 +115,37 @@ memtest (provided by instructor):
   Usage: ./memtest
   Expected output: "0 incorrect bytes"
 
-test1 -
-  Purpose:
-  Method: 
-  Usage: 
-  Expected output: 
-
-test2 -
-  Purpose: 
-  Method:      
-  Usage: 
-  Expected output:
-
-test3 -
-  Purpose:
-  Method: 
-  Usage:
-  Expected output:
-
---ERROR DETECTION TESTS--
-test4 -
-  Purpose:
-  Method:
-  Usage:
-  Expected:
-
-test5 - Double free:
-  Purpose:
-  Method:
-  Usage:
-  Expected:
-
-test6 -
-  Purpose:
-  Method:
-  Usage:
-  Expected:
+  test1 -
+  Purpose: Check that back‑to‑back malloc calls give separate, non‑overlapping blocks.
+  Method: Allocate many small blocks, fill each with a different pattern, then verify every block still has its own pattern and distinct address.
+  Usage: ./test1
+  Expected output: runs to completion with no errors and exits with status 0.
+  test2 -
+  Purpose: Make sure freeing a block lets us reuse that space.
+  Method: Allocate A and B, free A, then allocate C of A’s size and confirm C’s pointer matches A and can be read/written safely.
+  Usage: ./test2
+  Expected output: Confirms reuse of A’s address (or otherwise reports success) and exits with status 0.
+  test3 -
+  Purpose: Verify that freeing neighbors lets us coalesce and satisfy a larger request.
+  Method: allocate A, B, C; free A and B; then request one larger block about size A+B and check it fits and starts where A did.
+  Usage: ./test3
+  Expected output: Reports that the big allocation succeeded using the coalesced space and exits with status 0.
+  --ERROR DETECTION TESTS--
+  test4 -
+  Purpose: Confirm freeing a non‑malloc pointer (like a stack variable) is rejected.
+  Method: Take the address of a local variable, call free on it, and rely on the heap scan to fail to find a matching chunk.
+  Usage: ./test4
+  Expected: Prints an invalid‑pointer free error with file/line and exits with status 2.
+  test5 - Double free:
+  Purpose: Make sure calling free twice on the same pointer is caught.
+  Method: Allocate a block, free it once, then free it again so the allocator sees the chunk is already free and flags it.
+  Usage: ./test5
+  Expected: Prints a double‑free error with file/line and exits with status 2.
+  test6 -
+  Purpose: Catch frees of a pointer into the middle of a block.
+  Method: Allocate a block, then call free on ((char *)ptr + offset) where offset is nonzero but within the block.
+  Usage: ./test6
+  Expected:å Prints an error about freeing the middle of a chunk (invalid pointer) with file/line and exits with status 2.
 
 --STRESS TESTS--
 memgrind:
@@ -189,20 +189,20 @@ Workload 5 - Tree structure (simulates binary tree):
 
 --RUNNING TESTS--
   ./memtest     - Run provided correctness test
-  ./test1       -
-  ./test2       -
-  ./test3       -
-  ./test4       -
-  ./test5       -
-  ./test6       -
-  ./memgrind    -
+  ./test1       - Verifies malloc() reserves non-overlapping memory
+  ./test2       - Verifies free() deallocates memory for reuse
+  ./test3       - Verifies coalescing of adjacent free blocks
+  ./test4       - Tests error detection for invalid pointer (stack variable)
+  ./test5       - Tests error detection for double free
+  ./test6       - Tests error detection for freeing middle of chunk
+  ./memgrind    - Stress test with five workloads; reports timing
 
---EXPECTED RESULTS--
+-EXPECTED RESULTS--
 Correctness tests (memtest, test1, test2, test3):
-  -
+  - Exit with status 0; may print a short success message.
 
 Error detection tests (test4, test5, test6):
-  - 
+  - Print an error message (file and line) and exit with status 2.
 
 memgrind:
   - Should output timing for all 5 workloads
@@ -218,11 +218,11 @@ Janine:
   - Created memgrind.c
   - Created Makefile
 
-[Your name]:
+Antonio:
   - Implemented mymalloc()
   - Implemented heap initialization and leak detection
   - Wrote correctness test programs
-  - [anything u wanna add this is just what i wrote at the top of my head]
+  - Wrote error test programs
 
 Both partners:
   - Collaborated on header structure design
